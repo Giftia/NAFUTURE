@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <title>光合未来</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <h1>光和未来数据页</h1>
+  </p>本地ip地址：<strong>%LOCALIP%</strong></p>
+    <p>指示灯状态：<strong>%STATE%</strong></p>
+    <p>
+      <a href="/on"><button class="button">常亮</button></a>
+      <a href="/off"><button class="button button2">常灭</button></a>
+    </p>
+    <p>
+      <span class="sensor-labels">温度</span>
+      <span id="temperature">%TEMPERATURE%</span>
+      <sup class="units">&deg;C</sup>
+    </p>
+    <p>
+      <span class="sensor-labels">湿度</span>
+      <span id="humidity">%HUMIDITY%</span>
+      <sup class="units">&#37;</sup>
+    </p>
+  </body>
+  <script>
+    setInterval(function () {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("temperature").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/temperature", true);
+      xhttp.send();
+    }, 5000);
+
+    setInterval(function () {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("humidity").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/humidity", true);
+      xhttp.send();
+    }, 5000);
+  </script>
+</html>
