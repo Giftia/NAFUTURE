@@ -2,23 +2,25 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <FS.h>
-#include <dht11.h>
+#include <DHT.h>
 
-dht11 DHT11;
+#define DHTPIN 4      //温湿度
+#define DHTTYPE DHT11 // DHT 11
+DHT dht(DHTPIN, DHTTYPE);
 
-int t, h;
+float t = 0.0;
+float h = 0.0;
 
 IPAddress temp;
 String ip;
 
 unsigned long previousMillis = 0; // will store last time DHT was updated
 
-const long interval = 5000;
+const long interval = 3000;
 
 const char *ssid = "";
 const char *password = "";
 
-#define DHT11PIN 4     //温湿度
 const int ledPin = 12; //指示灯
 String ledState;
 
@@ -50,12 +52,14 @@ String processor(const String &var)
   {
     return String(h);
   }
+  return String();
 }
 
 void setup()
 {
   Serial.begin(115200);
   pinMode(ledPin, OUTPUT);
+  dht.begin();
 
   //初始化SPIFFS
   if (!SPIFFS.begin())
@@ -66,10 +70,11 @@ void setup()
 
   //连接WiFi
   WiFi.begin(ssid, password);
+  Serial.println("Connecting WiFi");
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
-    Serial.println("Connecting to WiFi..");
+    Serial.print(".");
   }
 
   Serial.println(WiFi.localIP()); //打印访问地址
@@ -123,12 +128,16 @@ void setup()
 
 void loop()
 {
-  DHT11.read(DHT11PIN);
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval)
   {
+    // save the last time you updated the DHT values
     previousMillis = currentMillis;
-    int newT = DHT11.temperature;
+    // Read temperature as Celsius (the default)
+    float newT = dht.readTemperature();
+    // Read temperature as Fahrenheit (isFahrenheit = true)
+    //float newT = dht.readTemperature(true);
+    // if temperature read failed, don't change t value
     if (isnan(newT))
     {
       Serial.println("Failed to read from DHT sensor!");
@@ -138,7 +147,9 @@ void loop()
       t = newT;
       //Serial.println(t);
     }
-    int newH = DHT11.humidity;
+    // Read Humidity
+    float newH = dht.readHumidity();
+    // if humidity read failed, don't change h value
     if (isnan(newH))
     {
       Serial.println("Failed to read from DHT sensor!");
