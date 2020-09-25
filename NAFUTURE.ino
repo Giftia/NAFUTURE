@@ -1,3 +1,8 @@
+/*
+  Giftina：https://giftia.moe
+  推销烧录器：https://market.m.taobao.com/app/idleFish-F2e/widle-taobao-rax/page-detail?wh_weex=true&wx_navbar_transparent=true&id=626032002165&ut_sk=1.XrybCpHeoWADAMQYe2jVnfL5_21407387_1599787921395.Copy.detail.626032002165.1783941160&forceFlush=1&qq-pf-to=pcqq.c2c
+  推销开源硬件：https://oshwhub.com/Giftina/guang-ge-wei-lai-shao-lu-zhuai-j
+*/
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -10,6 +15,7 @@ DHT dht(DHTPIN, DHTTYPE);
 
 float t = 0.0;
 float h = 0.0;
+float b = 0.0;
 
 IPAddress temp;
 String ip;
@@ -51,6 +57,10 @@ String processor(const String &var)
   else if (var == "HUMIDITY")
   {
     return String(h);
+  }
+  else if (var == "BATTERY")
+  {
+    return String(b);
   }
   return String();
 }
@@ -94,33 +104,37 @@ void setup()
   ip += String(buf[3]);
 
   // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(SPIFFS, "/index.html", String(), false, processor);
   });
 
   // Route to load style.css file
-  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(SPIFFS, "/style.css", "text/css");
   });
 
   // Route to set GPIO to HIGH
-  server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/on", HTTP_GET, [](AsyncWebServerRequest * request) {
     digitalWrite(ledPin, HIGH);
     request->send(SPIFFS, "/index.html", String(), false, processor);
   });
 
   // Route to set GPIO to LOW
-  server.on("/off", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/off", HTTP_GET, [](AsyncWebServerRequest * request) {
     digitalWrite(ledPin, LOW);
     request->send(SPIFFS, "/index.html", String(), false, processor);
   });
 
-  server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send_P(200, "text/plain", String(t).c_str());
   });
 
-  server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send_P(200, "text/plain", String(h).c_str());
+  });
+
+  server.on("/battery", HTTP_GET, [](AsyncWebServerRequest * request) {
+    request->send_P(200, "text/plain", String(b).c_str());
   });
 
   server.begin();
@@ -131,6 +145,8 @@ void loop()
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval)
   {
+    b = analogRead(A0);
+    b = ( b / 1024 ) * 100;
     // save the last time you updated the DHT values
     previousMillis = currentMillis;
     // Read temperature as Celsius (the default)
