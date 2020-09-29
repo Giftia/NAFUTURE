@@ -7,7 +7,7 @@
     <link rel="icon" href="data:," />
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
-  <body>
+  <body οnbefοreunlοad="checkLeave()" οnunlοad="Leave()">
     <h1>光和未来数据页</h1>
     <p>本地ip地址：<strong>%LOCALIP%</strong></p>
     <p>指示灯状态：<strong>%STATE%</strong></p>
@@ -27,7 +27,7 @@
     </p>
     <p>
       <span class="sensor-labels">电量</span>
-      <span id="humidity">%BATTERY%</span>
+      <span id="battery">%BATTERY%</span>
       <sup class="units">&#37;</sup>
     </p>
   </body>
@@ -64,5 +64,14 @@
       xhttp.open("GET", "/battery", true);
       xhttp.send();
     }, 5000);
+
+    function checkLeave() {
+      event.returnValue = "确定关闭数据页吗？设备将会进入休眠模式以节约电量";
+    }
+
+    function Leave() {
+      xhttp.open("GET", "/sleep", true);
+      alert("设备将进入休眠模式，一小时后自动唤醒");
+    }
   </script>
 </html>

@@ -1,6 +1,18 @@
 /*
   Giftina：https://giftia.moe
-  推销烧录器：https://market.m.taobao.com/app/idleFish-F2e/widle-taobao-rax/page-detail?wh_weex=true&wx_navbar_transparent=true&id=626032002165&ut_sk=1.XrybCpHeoWADAMQYe2jVnfL5_21407387_1599787921395.Copy.detail.626032002165.1783941160&forceFlush=1&qq-pf-to=pcqq.c2c
+
+  使用说明：
+  1.使用M-TTL烧录器或第三方TTL连接光和未来温湿度传感计(以下简称设备)；
+  2.按住M-TTL烧录器上的FLASH按钮 并打开设备开关，应能观察到设备蓝色指示灯微光常亮，进入烧录模式；
+  3.使用安装了对应库的 Arduino IDE 打开本工程，修改25、26行的 ssid 和 password 为自己的WiFi；
+  4.点击菜单-工具中的 ESP8266 Sketch Data Upload 刷入 SPIFFS，等待完毕后重复第二步；
+  5.点击上传，等待完毕后重启设备开关；
+  6.打开电脑或手机的WiFi，连接一个名字类似 ESP_1A2B3C 的WiFi；
+  7.使用浏览器访问 192.168.4.1，查看页面上显示的 本地ip地址，接着切换到自己的WiFi；
+  8.访问上面显示的 本地ip地址 即可在局域网查看数据页。进入睡眠状态后，设备将会在1小时后醒来10分钟。
+
+  推销M-TTL烧录器：https://market.m.taobao.com/app/idleFish-F2e/widle-taobao-rax/page-detail?wh_weex=true&wx_navbar_transparent=true&id=626032002165&ut_sk=1.XrybCpHeoWADAMQYe2jVnfL5_21407387_1599787921395.Copy.detail.626032002165.1783941160&forceFlush=1&qq-pf-to=pcqq.c2c
+
   推销开源硬件：https://oshwhub.com/Giftina/guang-ge-wei-lai-shao-lu-zhuai-j
 */
 #include <ESP8266WiFi.h>
@@ -8,26 +20,30 @@
 #include <ESPAsyncWebServer.h>
 #include <FS.h>
 #include <DHT.h>
-
-#define DHTPIN 4      //温湿度
-#define DHTTYPE DHT11 // DHT 11
-DHT dht(DHTPIN, DHTTYPE);
-
-float t = 0.0;
-float h = 0.0;
-float b = 0.0;
-
-IPAddress temp;
-String ip;
-
-unsigned long previousMillis = 0; // will store last time DHT was updated
-
-const long interval = 3000;
+#include <Ticker.h>
 
 const char *ssid = "";
 const char *password = "";
 
-const int ledPin = 12; //指示灯
+Ticker Wait10mTicket;
+
+#define DHTPIN 4      //DHT11位于GPIO4
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+float t = 0.0;               //温度
+float h = 0.0;               //湿度
+float b = 0.0;               //电量
+float SleepTime = 60 * 60e6; //睡眠时间，默认1小时
+
+IPAddress temp;
+String ip;
+
+unsigned long previousMillis = 0; //前一次温湿度改变时间
+
+const long interval = 3000; //每隔几秒检测一次
+
+const int ledPin = 12; //指示灯位于GPIO12
 String ledState;
 
 AsyncWebServer server(80);
@@ -87,7 +103,7 @@ void setup()
     Serial.print(".");
   }
 
-  Serial.println(WiFi.localIP()); //打印访问地址
+  Serial.println(WiFi.localIP()); //串口打印访问地址
 
   temp = WiFi.localIP();
   int buf[3];
@@ -137,7 +153,17 @@ void setup()
     request->send_P(200, "text/plain", String(b).c_str());
   });
 
+  server.on("/sleep", HTTP_GET, [](AsyncWebServerRequest * request) {
+    sleep;
+  });
+
   server.begin();
+
+  Wait10mTicket.attach(10 * 60, sleep);//闲置10分钟自动睡眠
+}
+
+void sleep() { //睡眠
+  ESP.deepSleep(SleepTime);
 }
 
 void loop()
@@ -146,7 +172,7 @@ void loop()
   if (currentMillis - previousMillis >= interval)
   {
     b = analogRead(A0);
-    b = ( b / 1024 ) * 100;
+    b = (b / 1024) * 100;
     // save the last time you updated the DHT values
     previousMillis = currentMillis;
     // Read temperature as Celsius (the default)
