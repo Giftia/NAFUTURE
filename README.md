@@ -10,6 +10,6 @@
 - 7.使用浏览器访问 192.168.4.1，查看页面上显示的 本地ip地址，接着切换到自己的WiFi；
 - 8.访问上面显示的 本地ip地址 即可在局域网查看数据页。进入睡眠状态后，设备将会在1小时后醒来10分钟。
 
-  所需的M-TTL烧录器：https://market.m.taobao.com/app/idleFish-F2e/widle-taobao-rax/page-detail?wh_weex=true&wx_navbar_transparent=true&id=626032002165&ut_sk=1.XrybCpHeoWADAMQYe2jVnfL5_21407387_1599787921395.Copy.detail.626032002165.1783941160&forceFlush=1&qq-pf-to=pcqq.c2c
+  所需的M-TTL烧录器：https://item.taobao.com/item.htm?id=638998843446
 
   M-TTL烧录器硬件开源于：https://oshwhub.com/Giftina/guang-ge-wei-lai-shao-lu-zhuai-j
